@@ -18,6 +18,14 @@ data class HubDevConfig(
     var database: DatabaseConfig = DatabaseConfig(),
     var scripts: MutableMap<String, String> = mutableMapOf(),
 ) {
+    fun toDevhubJson(): String = buildString {
+        appendLine("{")
+        appendLine("  \"php\": \"$php\",")
+        appendLine("  \"domain\": \"$domain\",")
+        appendLine("  \"database\": \"${database.name}\"")
+        append("}")
+    }
+
     fun toYaml(): String = buildString {
         appendLine("# HubDev Team Configuration")
         appendLine("# Share this file with your team so everyone gets the same dev environment.")

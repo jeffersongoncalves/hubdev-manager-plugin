@@ -1,5 +1,7 @@
 package com.jeffersongoncalves.hubdevmanager.service
 
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonParser
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.components.Service
@@ -36,7 +38,7 @@ class HubDevConfigService(private val project: Project) {
                     val path = event.path ?: continue
                     if (!path.replace("\\", "/").startsWith(projectBase.replace("\\", "/"))) continue
                     val fileName = path.substringAfterLast("/").substringAfterLast("\\")
-                    if (fileName != "devhub.yml") continue
+                    if (fileName != "devhub.yml" && fileName != ".devhub.json") continue
 
                     when (event) {
                         is VFileCreateEvent, is VFileContentChangeEvent -> loadConfig()
@@ -55,12 +57,25 @@ class HubDevConfigService(private val project: Project) {
 
     fun loadConfig() {
         val devhubYml = findDevhubYml()
+        val devhubJson = findDevhubJson()
+
         if (devhubYml != null) {
             try {
                 val content = String(devhubYml.contentsToByteArray(), Charsets.UTF_8)
                 config = HubDevConfig.fromYaml(content)
+
+                if (devhubJson != null) {
+                    mergeFromDevhubJson(devhubJson)
+                }
             } catch (e: Exception) {
                 log.warn("Failed to parse devhub.yml", e)
+                config = null
+            }
+        } else if (devhubJson != null) {
+            try {
+                config = loadFromDevhubJson(devhubJson)
+            } catch (e: Exception) {
+                log.warn("Failed to parse .devhub.json", e)
                 config = null
             }
         } else {
@@ -74,8 +89,12 @@ class HubDevConfigService(private val project: Project) {
     fun saveConfig(newConfig: HubDevConfig) {
         WriteAction.run<Exception> {
             val baseDir = ProjectRootManager.getInstance(project).contentRoots.firstOrNull() ?: return@run
-            val file = baseDir.findChild("devhub.yml") ?: baseDir.createChildData(this, "devhub.yml")
-            VfsUtil.saveText(file, newConfig.toYaml())
+
+            val ymlFile = baseDir.findChild("devhub.yml") ?: baseDir.createChildData(this, "devhub.yml")
+            VfsUtil.saveText(ymlFile, newConfig.toYaml())
+
+            val jsonFile = baseDir.findChild(".devhub.json") ?: baseDir.createChildData(this, ".devhub.json")
+            VfsUtil.saveText(jsonFile, newConfig.toDevhubJson())
         }
         config = newConfig
         checkLinkStatus()
@@ -107,6 +126,40 @@ class HubDevConfigService(private val project: Project) {
     private fun findDevhubYml(): VirtualFile? {
         val baseDir = ProjectRootManager.getInstance(project).contentRoots.firstOrNull() ?: return null
         return baseDir.findChild("devhub.yml")
+    }
+
+    private fun findDevhubJson(): VirtualFile? {
+        val baseDir = ProjectRootManager.getInstance(project).contentRoots.firstOrNull() ?: return null
+        return baseDir.findChild(".devhub.json")
+    }
+
+    private fun loadFromDevhubJson(file: VirtualFile): HubDevConfig {
+        val content = String(file.contentsToByteArray(), Charsets.UTF_8)
+        val json = JsonParser.parseString(content).asJsonObject
+        val projectName = project.name.lowercase().replace(Regex("[^a-z0-9-]"), "-")
+
+        return HubDevConfig(
+            name = projectName,
+            domain = json.get("domain")?.asString ?: "$projectName.test",
+            php = json.get("php")?.asString ?: "8.4",
+            database = com.jeffersongoncalves.hubdevmanager.model.DatabaseConfig(
+                name = json.get("database")?.asString ?: projectName.replace("-", "_"),
+            ),
+        )
+    }
+
+    private fun mergeFromDevhubJson(file: VirtualFile) {
+        val cfg = config ?: return
+        try {
+            val content = String(file.contentsToByteArray(), Charsets.UTF_8)
+            val json = JsonParser.parseString(content).asJsonObject
+
+            if (cfg.php.isBlank()) cfg.php = json.get("php")?.asString ?: "8.4"
+            if (cfg.domain.isBlank()) cfg.domain = json.get("domain")?.asString ?: ""
+            if (cfg.database.name.isBlank()) cfg.database.name = json.get("database")?.asString ?: ""
+        } catch (e: Exception) {
+            log.warn("Failed to merge .devhub.json", e)
+        }
     }
 
     private fun fireConfigChanged() {
