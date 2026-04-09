@@ -33,11 +33,14 @@ class HubDevCliService {
         ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Linking site '${config.name}'...", false) {
             override fun run(indicator: ProgressIndicator) {
                 try {
+                    val nativePath = Paths.get(projectPath).toAbsolutePath().toString()
+                    val sep = java.io.File.separator
+
                     val siteEntry = linkedMapOf<String, Any>(
                         "name" to config.name,
                         "domain" to config.domain,
-                        "path" to projectPath.replace("/", "\\"),
-                        "doc_root" to "${projectPath.replace("/", "\\")}\\public",
+                        "path" to nativePath,
+                        "doc_root" to "$nativePath${sep}public",
                         "driver" to "laravel",
                         "php_version" to config.php,
                         "database" to config.database.name,
