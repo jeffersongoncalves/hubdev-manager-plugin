@@ -1,0 +1,102 @@
+<idea-plugin>
+    <id>com.jeffersongoncalves.hubdevmanager</id>
+    <name>HubDev Manager</name>
+    <vendor email="jefferson@jeffersongoncalves.com"
+            url="https://github.com/jeffersongoncalves">
+        Jefferson Goncalves
+    </vendor>
+
+    <description><![CDATA[
+    <h2>HubDev Manager — Team Dev Environment for PhpStorm</h2>
+    <p>Manage <a href="https://hubdev.io">HubDev</a> project configuration directly from your IDE. Create and share <code>devhub.yml</code> files so your entire team gets the same local development environment — domain, PHP version, database, and project scripts.</p>
+
+    <h3>Features</h3>
+    <ul>
+        <li><b>Auto-detection</b> — Detects HubDev CLI on Windows, macOS, and Linux</li>
+        <li><b>Project configuration</b> — Create and edit <code>devhub.yml</code> with site name, domain, PHP version, database, and scripts</li>
+        <li><b>Database setup</b> — Configure and create databases (MySQL, PostgreSQL, SQLite, SQL Server)</li>
+        <li><b>Script runner</b> — Define and run project scripts (setup, build, migrate, etc.) from the IDE</li>
+        <li><b>Site linking</b> — Link/unlink projects to HubDev with one click</li>
+        <li><b>SSL management</b> — Secure sites with HTTPS directly from the IDE</li>
+        <li><b>Status bar widget</b> — See link status at a glance in the IDE status bar</li>
+        <li><b>Tool window panel</b> — Full configuration UI in the right sidebar</li>
+        <li><b>Smart notifications</b> — Prompts to configure or link on project open</li>
+        <li><b>Reactive updates</b> — UI auto-refreshes when <code>devhub.yml</code> changes externally</li>
+        <li><b>Team sharing</b> — Commit <code>devhub.yml</code> to git so everyone uses the same config</li>
+    </ul>
+
+    <h3>Quick Start</h3>
+    <ol>
+        <li>Open a project in PhpStorm</li>
+        <li>The plugin auto-detects HubDev and checks for <code>devhub.yml</code></li>
+        <li>If no config exists, a notification offers to <b>Configure Now</b></li>
+        <li>Set your site name, domain, PHP version, database, and scripts</li>
+        <li>Click <b>Link Site</b> to register with HubDev</li>
+    </ol>
+
+    <p>Access the tool window via <b>View → Tool Windows → HubDev Manager</b> or the HubDev icon in the right sidebar. Actions also available under <b>Tools → HubDev</b>.</p>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.jetbrains.php</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <projectService
+            serviceImplementation="com.jeffersongoncalves.hubdevmanager.service.HubDevConfigService"/>
+
+        <applicationService
+            serviceImplementation="com.jeffersongoncalves.hubdevmanager.service.HubDevCliService"/>
+
+        <applicationService
+            serviceImplementation="com.jeffersongoncalves.hubdevmanager.service.HubDevDetectorService"/>
+
+        <toolWindow
+            id="HubDev Manager"
+            anchor="right"
+            secondary="true"
+            icon="/icons/hubdev.svg"
+            factoryClass="com.jeffersongoncalves.hubdevmanager.ui.HubDevToolWindowFactory"/>
+
+        <statusBarWidgetFactory
+            id="HubDevStatusBarWidget"
+            implementation="com.jeffersongoncalves.hubdevmanager.ui.HubDevStatusBarWidgetFactory"
+            order="after encodingWidget"/>
+
+        <postStartupActivity
+            implementation="com.jeffersongoncalves.hubdevmanager.listeners.HubDevProjectOpenListener"/>
+
+        <notificationGroup
+            id="HubDev Manager"
+            displayType="BALLOON"/>
+    </extensions>
+
+    <actions>
+        <group id="HubDevManager.ActionGroup"
+               text="HubDev"
+               description="HubDev actions"
+               popup="true">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+
+            <action id="HubDevManager.ConfigureSite"
+                    class="com.jeffersongoncalves.hubdevmanager.actions.HubDevConfigureSiteAction"
+                    text="Configure Site"
+                    description="Configure HubDev site settings"
+                    icon="/icons/hubdev.svg"/>
+
+            <action id="HubDevManager.LinkSite"
+                    class="com.jeffersongoncalves.hubdevmanager.actions.HubDevLinkSiteAction"
+                    text="Link Site"
+                    description="Link this project to HubDev"/>
+
+            <action id="HubDevManager.OpenInBrowser"
+                    class="com.jeffersongoncalves.hubdevmanager.actions.HubDevOpenInBrowserAction"
+                    text="Open in Browser"
+                    description="Open site in default browser"/>
+
+            <action id="HubDevManager.RunScript"
+                    class="com.jeffersongoncalves.hubdevmanager.actions.HubDevRunScriptAction"
+                    text="Run Script..."
+                    description="Run a devhub.yml script"/>
+        </group>
+    </actions>
+</idea-plugin>
