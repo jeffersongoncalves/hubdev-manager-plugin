@@ -241,27 +241,13 @@ class HubDevToolWindowPanel(private val project: Project) : JPanel() {
     }
 
     private fun linkSite() {
-        val siteName = siteNameField.text.trim()
-        if (siteName.isBlank()) return
+        saveConfig()
+        val config = configService.config ?: return
 
-        if (!configService.hasConfig()) {
-            saveConfig()
-        }
-
-        cliService.linkSite(project, siteName) {
+        cliService.linkSite(project, config) {
             ApplicationManager.getApplication().invokeLater {
-                val domain = domainField.text.trim()
-                if (domain.isNotBlank()) {
-                    cliService.secureSite(project, domain) {
-                        ApplicationManager.getApplication().invokeLater {
-                            configService.loadConfig()
-                            refreshUI()
-                        }
-                    }
-                } else {
-                    configService.loadConfig()
-                    refreshUI()
-                }
+                configService.loadConfig()
+                refreshUI()
             }
         }
     }
