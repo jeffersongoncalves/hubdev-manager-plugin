@@ -25,7 +25,14 @@ class HubDevLinkSiteAction : AnAction(
         val cliService = HubDevCliService.getInstance()
 
         cliService.linkSite(project, config.name) {
-            configService.loadConfig()
+            val domain = config.domain
+            if (domain.isNotBlank()) {
+                cliService.secureSite(project, domain) {
+                    configService.loadConfig()
+                }
+            } else {
+                configService.loadConfig()
+            }
         }
     }
 

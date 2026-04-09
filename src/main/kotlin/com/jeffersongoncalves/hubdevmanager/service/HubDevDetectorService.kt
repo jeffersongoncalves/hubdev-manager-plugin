@@ -55,12 +55,12 @@ class HubDevDetectorService {
 
     fun getTld(): String {
         val configDir = getHubDevConfigDir() ?: return "test"
-        val settingsJson = configDir.resolve("config").resolve("settings.json")
+        val valetConfig = configDir.resolve("config").resolve("valet").resolve("config.json")
 
-        if (!Files.exists(settingsJson)) return "test"
+        if (!Files.exists(valetConfig)) return "test"
 
         return try {
-            val content = Files.readString(settingsJson)
+            val content = Files.readString(valetConfig)
             val json = JsonParser.parseString(content).asJsonObject
             json.get("tld")?.asString ?: "test"
         } catch (e: Exception) {
@@ -71,7 +71,7 @@ class HubDevDetectorService {
 
     fun getLinkedSites(): List<String> {
         val configDir = getHubDevConfigDir() ?: return emptyList()
-        val sitesDir = configDir.resolve("sites")
+        val sitesDir = configDir.resolve("config").resolve("valet").resolve("Sites")
 
         if (!Files.isDirectory(sitesDir)) return emptyList()
 
@@ -87,7 +87,7 @@ class HubDevDetectorService {
 
     fun isSiteLinked(siteName: String): Boolean {
         val configDir = getHubDevConfigDir() ?: return false
-        val sitePath = configDir.resolve("sites").resolve(siteName)
+        val sitePath = configDir.resolve("config").resolve("valet").resolve("Sites").resolve(siteName)
         return Files.exists(sitePath)
     }
 

@@ -114,7 +114,7 @@ class HubDevToolWindowPanel(private val project: Project) : JPanel() {
                             }
                         }
                         button("Remove") {
-                            scriptRows.removeAt(index)
+                            scriptRows.remove(scriptRow)
                             buildUI()
                         }
                     }
@@ -250,8 +250,18 @@ class HubDevToolWindowPanel(private val project: Project) : JPanel() {
 
         cliService.linkSite(project, siteName) {
             ApplicationManager.getApplication().invokeLater {
-                configService.loadConfig()
-                refreshUI()
+                val domain = domainField.text.trim()
+                if (domain.isNotBlank()) {
+                    cliService.secureSite(project, domain) {
+                        ApplicationManager.getApplication().invokeLater {
+                            configService.loadConfig()
+                            refreshUI()
+                        }
+                    }
+                } else {
+                    configService.loadConfig()
+                    refreshUI()
+                }
             }
         }
     }
