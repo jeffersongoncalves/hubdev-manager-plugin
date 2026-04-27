@@ -1,5 +1,7 @@
 # HubDev Manager — PhpStorm Plugin
 
+![HubDev Manager](banners/hubdev-manager.png)
+
 Manage [HubDev](https://hubdev.io) project configuration directly from PhpStorm. Create and share `devhub.yml` files so your entire team gets the same local development environment.
 
 ## Screenshots
