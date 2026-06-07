@@ -18,6 +18,18 @@
 
 Built as a sibling of `herd-manager-plugin`, adapted to HubDev's model: a single central `~/.devhub/config/sites.yml` (instead of per-project `herd.yml`) and the `hubdev` CLI.
 
+## Screenshots
+
+| Not Linked | Linked & Active |
+|:-:|:-:|
+| ![Tool Window — Not Linked](docs/screenshots/01.png) | ![Tool Window — Linked](docs/screenshots/02.png) |
+
+The tool window reflects live site state from `sites.yml` — domain, PHP version, database, and mode — with one-click link/unlink, start/stop, and SSL actions.
+
+![HubDev app](docs/screenshots/03.png)
+
+*Open the HubDev desktop app straight from the IDE.*
+
 ## Features
 
 - **Auto-detection** — Finds the HubDev install on Windows, macOS, and Linux. On Windows it accepts both the new brand name `hubdev` and the legacy executable `devhub.exe` (`C:\Program Files\HubDev\HubDev\devhub.exe`).
